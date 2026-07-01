@@ -36,7 +36,7 @@ class ClusteringService:
             # 1. Compute embeddings using Google Gemini API
             # This avoids importing PyTorch/sentence-transformers and fits in Render's 512MB RAM
             embed_response = genai.embed_content(
-                model="models/text-embedding-004",
+                model="models/embedding-001",
                 content=items,
                 task_type="clustering"
             )
