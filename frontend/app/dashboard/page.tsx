@@ -67,8 +67,11 @@ function DashboardContent() {
     );
   }
 
-  // Safely extract analysis payloads
-  const analysis = batch.analysis_results && batch.analysis_results.length > 0 ? batch.analysis_results[0] : null;
+  // Safely extract analysis payloads (supports both one-to-many list format and one-to-one object format from Supabase)
+  const analysisResults = batch.analysis_results;
+  const analysis = analysisResults 
+    ? (Array.isArray(analysisResults) ? (analysisResults.length > 0 ? analysisResults[0] : null) : analysisResults)
+    : null;
   const sentiment = analysis?.sentiment_json || { positive: 0, neutral: 0, negative: 0 };
   const themes = batch.themes || [];
   

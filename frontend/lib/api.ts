@@ -44,7 +44,7 @@ export interface BatchData {
       feature_requests: string[];
     };
     summary_text: string;
-  }[];
+  }[] | any;
   themes?: Theme[];
 }
 

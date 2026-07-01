@@ -159,7 +159,10 @@ export default function HistoryPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {comparisonData.map((data, idx) => {
-                  const analysis = data.analysis_results && data.analysis_results.length > 0 ? data.analysis_results[0] : null;
+                  const analysisResults = data.analysis_results;
+                  const analysis = analysisResults 
+                    ? (Array.isArray(analysisResults) ? (analysisResults.length > 0 ? analysisResults[0] : null) : analysisResults)
+                    : null;
                   const sentiment = analysis?.sentiment_json || { positive: 0, neutral: 0, negative: 0 };
                   const payloadJson = analysis?.themes_json || {};
                   const complaints = (payloadJson as any).top_complaints || [];
@@ -239,7 +242,10 @@ export default function HistoryPage() {
               <div className="overflow-hidden border border-zinc-800 rounded-2xl bg-zinc-900/30">
                 <div className="divide-y divide-zinc-800">
                   {batches.map((batch) => {
-                    const analysis = batch.analysis_results && batch.analysis_results.length > 0 ? batch.analysis_results[0] : null;
+                    const analysisResults = batch.analysis_results;
+                    const analysis = analysisResults 
+                      ? (Array.isArray(analysisResults) ? (analysisResults.length > 0 ? analysisResults[0] : null) : analysisResults)
+                      : null;
                     const sentiment = analysis?.sentiment_json || { positive: 0, neutral: 0, negative: 0 };
                     const isSelected = selectedIds.includes(batch.id);
 
