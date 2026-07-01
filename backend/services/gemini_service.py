@@ -27,14 +27,14 @@ class GeminiService:
         if not api_key:
             raise ValueError("GEMINI_API_KEY is not set in environment variables.")
 
-        # Initialize the gemini-1.5-flash model for cost efficiency
+        # Initialize the gemini-2.5-flash model for cost efficiency
         system_instruction = (
             "System: You are a customer feedback analyst. Always respond in valid JSON only. "
             "No explanation. No markdown."
         )
         
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
+            model_name="gemini-2.5-flash",
             system_instruction=system_instruction,
             generation_config={"response_mime_type": "application/json"}
         )
