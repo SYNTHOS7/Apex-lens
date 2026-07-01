@@ -1,0 +1,22 @@
+# Python virtual environments and caches
+backend/venv/
+backend/.env
+**/__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Frontend dependencies and builds
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# IDE configurations and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
