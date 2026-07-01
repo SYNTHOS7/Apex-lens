@@ -2,7 +2,6 @@ import os
 import json
 import numpy as np
 from sklearn.cluster import KMeans
-from sentence_transformers import SentenceTransformer
 import google.generativeai as genai
 from services.gemini_service import GeminiService
 from dotenv import load_dotenv
@@ -10,22 +9,11 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class ClusteringService:
-    _model = None
-
-    @classmethod
-    def get_model(cls):
-        """
-        Lazy loads the SentenceTransformer model to optimize import speed.
-        """
-        if cls._model is None:
-            cls._model = SentenceTransformer('all-MiniLM-L6-v2')
-        return cls._model
-
     @classmethod
     def cluster_feedback(cls, items: list[str]) -> dict:
         """
-        Clusters a list of customer feedback items using embeddings and KMeans.
-        Falls back to pure Gemini analysis if item count is less than 20.
+        Clusters customer feedback items using Google Gemini API Embeddings and KMeans.
+        Bypasses local SentenceTransformer models to run under 100MB RAM (Render free tier friendly).
         
         Args:
             items (list[str]): The list of individual feedback comments.
@@ -39,12 +27,23 @@ class ClusteringService:
             return GeminiService.analyze_feedback(combined_text)
 
         try:
-            # 1. Compute embeddings
-            model = cls.get_model()
-            embeddings = model.encode(items)
+            api_key = os.getenv("GEMINI_API_KEY")
+            if not api_key:
+                raise ValueError("GEMINI_API_KEY is not set in environment variables.")
+                
+            genai.configure(api_key=api_key)
+
+            # 1. Compute embeddings using Google Gemini API
+            # This avoids importing PyTorch/sentence-transformers and fits in Render's 512MB RAM
+            embed_response = genai.embed_content(
+                model="models/text-embedding-004",
+                content=items,
+                task_type="clustering"
+            )
+            
+            embeddings = np.array(embed_response['embedding'])
 
             # 2. Perform KMeans clustering
-            # Determine dynamic cluster count: 1 cluster per ~7 items, capped between 3 and 10
             num_clusters = max(3, min(10, len(items) // 7))
             kmeans = KMeans(n_clusters=num_clusters, random_state=42, n_init=10)
             cluster_labels = kmeans.fit_predict(embeddings)
@@ -71,11 +70,6 @@ class ClusteringService:
             # 3. Call Gemini to analyze clusters
             prompt = cls._build_prompt(clusters, representatives)
             
-            api_key = os.getenv("GEMINI_API_KEY")
-            if not api_key:
-                raise ValueError("GEMINI_API_KEY is not set.")
-                
-            genai.configure(api_key=api_key)
             system_instruction = (
                 "System: You are a customer feedback analyst. Always respond in valid JSON only. "
                 "No explanation. No markdown."
@@ -105,7 +99,6 @@ class ClusteringService:
             
             # Ensure proper counts in themes are mapped correctly
             for theme_idx, theme in enumerate(data.get("themes", [])):
-                # Map back the count of the corresponding cluster if Gemini didn't fill it correctly
                 if theme_idx < num_clusters:
                     theme["count"] = len(clusters[theme_idx])
             
@@ -113,7 +106,6 @@ class ClusteringService:
 
         except Exception as e:
             print(f"Clustering analysis failed: {str(e)}. Falling back to pure LLM analysis.")
-            # Fallback to pure LLM analysis on a subset of items to avoid token overflow
             subset = items[:50]
             combined_text = "\n---\n".join(subset)
             return GeminiService.analyze_feedback(combined_text)
