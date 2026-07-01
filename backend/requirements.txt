@@ -10,3 +10,4 @@ python-dotenv>=1.0.0
 google-generativeai>=0.4.0
 scikit-learn>=1.4.0
 sentence-transformers>=2.5.0
+reportlab>=4.1.0
