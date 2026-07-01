@@ -1,7 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Next.js static prerendering requires default placeholders to prevent build failures when env vars are unset
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder-project.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+// Bulletproof validation to ensure a valid URL format during Next.js build and prerendering
+if (!supabaseUrl.startsWith('http://') && !supabaseUrl.startsWith('https://')) {
+  supabaseUrl = 'https://placeholder-project.supabase.co';
+  supabaseAnonKey = 'placeholder-anon-key';
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
